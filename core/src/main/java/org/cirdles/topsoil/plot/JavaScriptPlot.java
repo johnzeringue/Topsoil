@@ -40,12 +40,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static javafx.concurrent.Worker.State.SUCCEEDED;
-import static org.cirdles.topsoil.plot.Variables.X;
-import static org.cirdles.topsoil.plot.Variables.SIGMA_X;
-import static org.cirdles.topsoil.plot.Variables.Y;
-import static org.cirdles.topsoil.plot.Variables.SIGMA_Y;
-import static org.cirdles.topsoil.plot.Variables.RHO;
 import static org.cirdles.topsoil.dataset.field.Fields.SELECTED;
+import static org.cirdles.topsoil.plot.Variables.RHO;
+import static org.cirdles.topsoil.plot.Variables.SIGMA_X;
+import static org.cirdles.topsoil.plot.Variables.SIGMA_Y;
+import static org.cirdles.topsoil.plot.Variables.X;
+import static org.cirdles.topsoil.plot.Variables.Y;
 
 /**
  * A {@link Plot} that uses JavaScript and HTML to power its visualizations.
@@ -106,7 +106,7 @@ public abstract class JavaScriptPlot extends BasePlot implements JavaFXDisplayab
     }
 
     private final CompletableFuture<Void> loadFuture;
-    protected final CompletableFuture<Void> initializeFuture;
+    protected CompletableFuture<Void> initializeFuture;
 
     private final Path sourcePath;
 
@@ -124,10 +124,6 @@ public abstract class JavaScriptPlot extends BasePlot implements JavaFXDisplayab
 
         this.sourcePath = sourcePath;
         loadFuture = new CompletableFuture<>();
-
-        initializeFuture = loadFuture.thenRunAsync(() -> {
-            getTopsoil().get().call("showData");
-        }, Platform::runLater);
     }
 
     public Path getSourcePath() {
@@ -198,6 +194,10 @@ public abstract class JavaScriptPlot extends BasePlot implements JavaFXDisplayab
     @Override
     public void setData(VariableContext variableContext) {
         super.setData(variableContext);
+
+        initializeFuture = loadFuture.thenRunAsync(() -> {
+            getTopsoil().get().call("showData");
+        }, Platform::runLater);
 
         EntryListener listener = (entry, field) -> {
             drawPlot(variableContext);
